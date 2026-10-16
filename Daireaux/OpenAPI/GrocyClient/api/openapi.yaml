@@ -1,0 +1,4574 @@
+openapi: 3.1.0
+info:
+  description: "Authentication is done via API keys (header *GROCY-API-KEY* or same\
+    \ named query parameter), which you can manage [here](PlaceHolderManageApiKeysUrl).<br>Additionally\
+    \ requests from within the frontend are also valid (via session cookie)."
+  license:
+    name: grocy.info
+    url: https://grocy.info
+  title: Grocy REST API
+  version: xxx
+servers:
+- url: xxx
+security:
+- ApiKeyAuth: []
+tags:
+- description: A limited set of entities are directly exposed for convenience
+  name: Generic entity interactions
+- name: System
+- name: User management
+- name: Current user
+- name: Stock
+- description: "Some of the *Stock* routes, but access them by the products barcode\
+    \ instead of its id"
+  name: Stock "by-barcode"
+- name: Recipes
+- name: Chores
+- name: Batteries
+- name: Tasks
+- name: Calendar
+- name: Files
+- name: Print
+paths:
+  /system/info:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_system_info_get_200_response"
+          description: An DbChangedTimeResponse object
+      summary: "Returns information about the installed Grocy version, PHP runtime\
+        \ and OS"
+      tags:
+      - System
+  /system/db-changed-time:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DbChangedTimeResponse"
+          description: An DbChangedTimeResponse object
+      summary: Returns the time when the database was last changed
+      tags:
+      - System
+  /system/config:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Key/value pairs of config settings
+                type: object
+          description: Key/value pairs of config settings
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Returns all config settings
+      tags:
+      - System
+  /system/time:
+    get:
+      parameters:
+      - $ref: "#/components/parameters/offsettime"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimeResponse"
+          description: A TimeResponse object
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Returns the current server time
+      tags:
+      - System
+  /system/localization-strings:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: A gettext JSON representation
+                type: object
+          description: The operation was successful
+      summary: Returns all localization strings (in the by the user desired language)
+      tags:
+      - System
+  /system/log-missing-localization:
+    post:
+      description: "Only when MODE == 'dev', so should only be called then"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MissingLocalizationRequest"
+        description: A valid MissingLocalizationRequest object
+        required: true
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Logs a missing localization string
+      tags:
+      - System
+  /objects/{entity}:
+    get:
+      parameters:
+      - description: A valid entity name
+        explode: false
+        in: path
+        name: entity
+        required: true
+        schema:
+          $ref: "#/components/schemas/ExposedEntity_NotIncludingNotListable"
+        style: simple
+      - $ref: "#/components/parameters/query"
+      - $ref: "#/components/parameters/order"
+      - $ref: "#/components/parameters/limit"
+      - $ref: "#/components/parameters/offset"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/_objects__entity__get_200_response_inner"
+                type: array
+                default: null
+          description: An entity object
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error500"
+          description: The operation was not successful (possible errors are invalid
+            field names or conditions in filter parameters provided)
+      summary: Returns all objects of the given entity
+      tags:
+      - Generic entity interactions
+    post:
+      parameters:
+      - description: A valid entity name
+        explode: false
+        in: path
+        name: entity
+        required: true
+        schema:
+          $ref: "#/components/schemas/ExposedEntity_NotIncludingNotEditable"
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_objects__entity__get_200_response_inner"
+        description: A valid entity object of the entity specified in parameter *entity*
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_objects__entity__post_200_response"
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Adds a single object of the given entity
+      tags:
+      - Generic entity interactions
+  /objects/{entity}/{objectId}:
+    delete:
+      parameters:
+      - description: A valid entity name
+        explode: false
+        in: path
+        name: entity
+        required: true
+        schema:
+          $ref: "#/components/schemas/ExposedEntity_NotIncludingNotDeletable"
+        style: simple
+      - description: A valid object id of the given entity
+        explode: false
+        in: path
+        name: objectId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Deletes a single object of the given entity
+      tags:
+      - Generic entity interactions
+    get:
+      parameters:
+      - description: A valid entity name
+        explode: false
+        in: path
+        name: entity
+        required: true
+        schema:
+          $ref: "#/components/schemas/ExposedEntity_NotIncludingNotListable"
+        style: simple
+      - description: A valid object id of the given entity
+        explode: false
+        in: path
+        name: objectId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_objects__entity__get_200_response_inner"
+          description: An entity object
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: Object not found
+      summary: Returns a single object of the given entity
+      tags:
+      - Generic entity interactions
+    put:
+      parameters:
+      - description: A valid entity name
+        explode: false
+        in: path
+        name: entity
+        required: true
+        schema:
+          $ref: "#/components/schemas/ExposedEntity_NotIncludingNotEditable"
+        style: simple
+      - description: A valid object id of the given entity
+        explode: false
+        in: path
+        name: objectId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_objects__entity__get_200_response_inner"
+        description: A valid entity object of the entity specified in parameter *entity*
+        required: true
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Edits the given object of the given entity
+      tags:
+      - Generic entity interactions
+  /userfields/{entity}/{objectId}:
+    get:
+      parameters:
+      - description: A valid entity name
+        explode: false
+        in: path
+        name: entity
+        required: true
+        schema:
+          $ref: "#/components/schemas/ExposedEntity_IncludingUserEntities"
+        style: simple
+      - description: A valid object id of the given entity
+        explode: false
+        in: path
+        name: objectId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Key/value pairs of userfields
+                type: object
+          description: Key/value pairs of userfields
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Returns all userfields with their values of the given object of the
+        given entity
+      tags:
+      - Generic entity interactions
+    put:
+      parameters:
+      - description: A valid entity name
+        explode: false
+        in: path
+        name: entity
+        required: true
+        schema:
+          $ref: "#/components/schemas/ExposedEntity_IncludingUserEntities_NotIncludingNotEditable"
+        style: simple
+      - description: A valid object id of the given entity
+        explode: false
+        in: path
+        name: objectId
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Key/value pairs of userfields
+        description: A valid entity object of the entity specified in parameter *entity*
+        required: true
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Edits the given userfields of the given object of the given entity
+      tags:
+      - Generic entity interactions
+  /files/{group}/{fileName}:
+    delete:
+      parameters:
+      - description: The file group
+        explode: false
+        in: path
+        name: group
+        required: true
+        schema:
+          $ref: "#/components/schemas/FileGroups"
+        style: simple
+      - description: The file name (including extension)<br>**BASE64 encoded**
+        explode: false
+        in: path
+        name: fileName
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Deletes the given file
+      tags:
+      - Files
+    get:
+      description: With proper Content-Type header
+      parameters:
+      - description: The file group
+        explode: false
+        in: path
+        name: group
+        required: true
+        schema:
+          $ref: "#/components/schemas/FileGroups"
+        style: simple
+      - description: The file name (including extension)<br>**BASE64 encoded**
+        explode: false
+        in: path
+        name: fileName
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Force the file to be served as the given type
+        explode: true
+        in: query
+        name: force_serve_as
+        required: false
+        schema:
+          enum:
+          - picture
+          type: string
+        style: form
+      - description: "Only when using `force_serve_as` = `picture`: Downscale the\
+          \ picture to the given height while maintaining the aspect ratio"
+        explode: true
+        in: query
+        name: best_fit_height
+        required: false
+        schema:
+          type: number
+        style: form
+      - description: "Only when using `force_serve_as` = `picture`: Downscale the\
+          \ picture to the given width while maintaining the aspect ratio"
+        explode: true
+        in: query
+        name: best_fit_width
+        required: false
+        schema:
+          type: number
+        style: form
+      responses:
+        "200":
+          content:
+            application/octet-stream:
+              schema:
+                format: binary
+                type: string
+          description: The binary file contents (Content-Type header is automatically
+            set based on the file type)
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Serves the given file
+      tags:
+      - Files
+    put:
+      description: "The file will be stored at /data/storage/{group}/{file_name} (you\
+        \ need to remember the group and file name to get or delete it again)"
+      parameters:
+      - description: The file group
+        explode: false
+        in: path
+        name: group
+        required: true
+        schema:
+          $ref: "#/components/schemas/FileGroups"
+        style: simple
+      - description: The file name (including extension)<br>**BASE64 encoded**
+        explode: false
+        in: path
+        name: fileName
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              format: binary
+              type: string
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Uploads a single file
+      tags:
+      - Files
+  /users:
+    get:
+      parameters:
+      - $ref: "#/components/parameters/query"
+      - $ref: "#/components/parameters/order"
+      - $ref: "#/components/parameters/limit"
+      - $ref: "#/components/parameters/offset"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/UserDto"
+                type: array
+                default: null
+          description: A list of user objects
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error500"
+          description: The operation was not successful (possible errors are invalid
+            field names or conditions in filter parameters provided)
+      summary: Returns all users
+      tags:
+      - User management
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+        description: A valid user object
+        required: true
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Creates a new user
+      tags:
+      - User management
+  /users/{userId}:
+    delete:
+      parameters:
+      - description: A valid user id
+        explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Deletes the given user
+      tags:
+      - User management
+    put:
+      parameters:
+      - description: A valid user id
+        explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+        description: A valid user object
+        required: true
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Edits the given user
+      tags:
+      - User management
+  /users/{userId}/permissions:
+    get:
+      description: See "GET /objects/permission_hierarchy" for a permission name /
+        id mapping
+      parameters:
+      - description: A valid user id
+        explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/_users__userId__permissions_get_200_response_inner"
+                type: array
+                default: null
+          description: A list of user permission objects
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Returns the assigned permissions of the given user
+      tags:
+      - User management
+    post:
+      description: See "GET /objects/permission_hierarchy" for a permission name /
+        id mapping
+      parameters:
+      - description: A valid user id
+        explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_users__userId__permissions_post_request"
+        required: true
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Adds a permission to the given user
+      tags:
+      - User management
+    put:
+      description: See "GET /objects/permission_hierarchy" for a permission name /
+        id mapping
+      parameters:
+      - description: A valid user id
+        explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_users__userId__permissions_put_request"
+        required: true
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Replaces the assigned permissions of the given user
+      tags:
+      - User management
+  /user:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/UserDto"
+                type: object
+          description: A user object
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Returns the currently authenticated user
+      tags:
+      - Current user
+  /user/settings:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Key/value pairs of user settings
+                type: object
+          description: Key/value pairs of user settings
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Returns all settings of the currently logged in user
+      tags:
+      - Current user
+  /user/settings/{settingKey}:
+    delete:
+      parameters:
+      - description: The key of the user setting
+        explode: false
+        in: path
+        name: settingKey
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Deletes the given setting of the currently logged in user
+      tags:
+      - Current user
+    get:
+      parameters:
+      - description: The key of the user setting
+        explode: false
+        in: path
+        name: settingKey
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSetting"
+          description: A UserSetting object
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Returns the given setting of the currently logged in user
+      tags:
+      - Current user
+    put:
+      parameters:
+      - description: The key of the user setting
+        explode: false
+        in: path
+        name: settingKey
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserSetting"
+        description: A valid UserSetting object
+        required: true
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Sets the given setting of the currently logged in user
+      tags:
+      - Current user
+  /stock:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/CurrentStockResponse"
+                type: array
+                default: null
+          description: An array of CurrentStockResponse objects
+      summary: Returns all products which are currently in stock incl. the next due
+        date per product
+      tags:
+      - Stock
+  /stock/entry/{entryId}:
+    get:
+      parameters:
+      - description: A valid stock entry id
+        explode: false
+        in: path
+        name: entryId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockEntry"
+          description: A StockEntry Response object
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product)"
+      summary: Returns details of the given stock
+      tags:
+      - Stock
+    put:
+      parameters:
+      - description: A valid stock entry id
+        explode: false
+        in: path
+        name: entryId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_entry__entryId__put_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StockLogEntry"
+                type: array
+                default: null
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product, invalid transaction type)"
+      summary: Edits the stock entry
+      tags:
+      - Stock
+  /stock/entry/{entryId}/printlabel:
+    get:
+      parameters:
+      - description: A valid stock entry id
+        explode: false
+        in: path
+        name: entryId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: WebHook data
+                type: object
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing stock entry, error on WebHook execution)"
+      summary: Prints the Grocycode / stock entry label of the given entry on the
+        configured label printer
+      tags:
+      - Stock
+  /stock/volatile:
+    get:
+      parameters:
+      - description: The number of days in which products are considered to be due
+          soon
+        explode: true
+        in: query
+        name: due_soon_days
+        required: false
+        schema:
+          default: 5
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentVolatilStockResponse"
+          description: A CurrentVolatilStockResponse object
+      summary: "Returns all products which are due soon, overdue, expired or currently\
+        \ missing"
+      tags:
+      - Stock
+  /stock/products/{productId}:
+    get:
+      parameters:
+      - description: A valid product id
+        explode: false
+        in: path
+        name: productId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductDetailsResponse"
+          description: A ProductDetailsResponse object
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product)"
+      summary: Returns details of the given product
+      tags:
+      - Stock
+  /stock/products/{productId}/locations:
+    get:
+      parameters:
+      - description: A valid product id
+        explode: false
+        in: path
+        name: productId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: If sub product locations should be included (if the given product
+          is a parent product and in addition to the ones of the given product)
+        explode: true
+        in: query
+        name: include_sub_products
+        required: false
+        schema:
+          type: boolean
+        style: form
+      - $ref: "#/components/parameters/query"
+      - $ref: "#/components/parameters/order"
+      - $ref: "#/components/parameters/limit"
+      - $ref: "#/components/parameters/offset"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StockLocation"
+                type: array
+                default: null
+          description: An array of StockLocation objects
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product)"
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error500"
+          description: The operation was not successful (possible errors are invalid
+            field names or conditions in filter parameters provided)
+      summary: Returns all locations where the given product currently has stock
+      tags:
+      - Stock
+  /stock/products/{productId}/entries:
+    get:
+      parameters:
+      - description: A valid product id
+        explode: false
+        in: path
+        name: productId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: If sub products should be included (if the given product is a
+          parent product and in addition to the ones of the given product)
+        explode: true
+        in: query
+        name: include_sub_products
+        required: false
+        schema:
+          type: boolean
+        style: form
+      - $ref: "#/components/parameters/query"
+      - $ref: "#/components/parameters/order"
+      - $ref: "#/components/parameters/limit"
+      - $ref: "#/components/parameters/offset"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StockEntry"
+                type: array
+                default: null
+          description: An array of StockEntry objects
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product)"
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error500"
+          description: The operation was not successful (possible errors are invalid
+            field names or conditions in filter parameters provided)
+      summary: "Returns all stock entries of the given product in order of next use\
+        \ (Opened first, then first due first, then first in first out)"
+      tags:
+      - Stock
+  /stock/products/{productId}/price-history:
+    get:
+      parameters:
+      - description: A valid product id
+        explode: false
+        in: path
+        name: productId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/ProductPriceHistory"
+                type: array
+                default: null
+          description: An array of ProductPriceHistory objects
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product)"
+      summary: Returns the price history of the given product
+      tags:
+      - Stock
+  /stock/products/{productId}/add:
+    post:
+      parameters:
+      - description: A valid product id
+        explode: false
+        in: path
+        name: productId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_products__productId__add_post_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StockLogEntry"
+                type: array
+                default: null
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product, invalid transaction type)"
+      summary: Adds the given amount of the given product to stock
+      tags:
+      - Stock
+  /stock/products/{productId}/consume:
+    post:
+      parameters:
+      - description: A valid product id
+        explode: false
+        in: path
+        name: productId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_products__productId__consume_post_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StockLogEntry"
+                type: array
+                default: null
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product, invalid transaction type, given amount > current stock\
+            \ amount)"
+      summary: Removes the given amount of the given product from stock
+      tags:
+      - Stock
+  /stock/products/{productId}/transfer:
+    post:
+      parameters:
+      - description: A valid product id
+        explode: false
+        in: path
+        name: productId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_products__productId__transfer_post_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StockLogEntry"
+                type: array
+                default: null
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product, no existing from or to location, given amount > current\
+            \ stock amount at the source location)"
+      summary: Transfers the given amount of the given product from one location to
+        another (this is currently not supported for tare weight handling enabled
+        products)
+      tags:
+      - Stock
+  /stock/products/{productId}/inventory:
+    post:
+      parameters:
+      - description: A valid product id
+        explode: false
+        in: path
+        name: productId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_products__productId__inventory_post_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StockLogEntry"
+                type: array
+                default: null
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product)"
+      summary: Inventories the given product (adds/removes based on the given new
+        amount)
+      tags:
+      - Stock
+  /stock/products/{productId}/open:
+    post:
+      parameters:
+      - description: A valid product id
+        explode: false
+        in: path
+        name: productId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_products__productId__open_post_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StockLogEntry"
+                type: array
+                default: null
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product, given amount > current unopened stock amount)"
+      summary: Marks the given amount of the given product as opened
+      tags:
+      - Stock
+  /stock/products/{productId}/printlabel:
+    get:
+      parameters:
+      - description: A valid product id
+        explode: false
+        in: path
+        name: productId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: WebHook data
+                type: object
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product, error on WebHook execution)"
+      summary: Prints the Grocycode label of the given product on the configured label
+        printer
+      tags:
+      - Stock
+  /stock/products/{productId}/copy:
+    post:
+      parameters:
+      - description: A valid product id of the product to copy
+        explode: false
+        in: path
+        name: productId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_stock_products__productId__copy_post_200_response"
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Invalid\
+            \ product id)"
+      summary: Copies a product
+      tags:
+      - Stock
+  /stock/products/{productIdToKeep}/merge/{productIdToRemove}:
+    post:
+      parameters:
+      - description: A valid product id of the product to keep
+        explode: false
+        in: path
+        name: productIdToKeep
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: A valid product id of the product to remove
+        explode: false
+        in: path
+        name: productIdToRemove
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Invalid\
+            \ product id)"
+      summary: Merges two products into one
+      tags:
+      - Stock
+  /stock/products/by-barcode/{barcode}:
+    get:
+      parameters:
+      - description: Barcode
+        explode: false
+        in: path
+        name: barcode
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductDetailsResponse"
+          description: A ProductDetailsResponse object
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Unknown\
+            \ barcode)"
+      summary: Returns details of the given product by its barcode
+      tags:
+      - Stock "by-barcode"
+  /stock/products/by-barcode/{barcode}/add:
+    post:
+      parameters:
+      - description: Barcode
+        explode: false
+        in: path
+        name: barcode
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_products_by_barcode__barcode__add_post_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StockLogEntry"
+                type: array
+                default: null
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product, invalid transaction type)"
+      summary: Adds the given amount of the by its barcode given product to stock
+      tags:
+      - Stock "by-barcode"
+  /stock/products/by-barcode/{barcode}/consume:
+    post:
+      parameters:
+      - description: Barcode
+        explode: false
+        in: path
+        name: barcode
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_products__productId__consume_post_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StockLogEntry"
+                type: array
+                default: null
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product, invalid transaction type, given amount > current stock\
+            \ amount)"
+      summary: Removes the given amount of the by its barcode given product from stock
+      tags:
+      - Stock "by-barcode"
+  /stock/products/by-barcode/{barcode}/transfer:
+    post:
+      parameters:
+      - description: Barcode
+        explode: false
+        in: path
+        name: barcode
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_products__productId__transfer_post_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StockLogEntry"
+                type: array
+                default: null
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product, no existing from or to location, given amount > current\
+            \ stock amount at the source location)"
+      summary: Transfers the given amount of the by its barcode given product from
+        one location to another (this is currently not supported for tare weight handling
+        enabled products)
+      tags:
+      - Stock "by-barcode"
+  /stock/products/by-barcode/{barcode}/inventory:
+    post:
+      parameters:
+      - description: Barcode
+        explode: false
+        in: path
+        name: barcode
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_products_by_barcode__barcode__inventory_post_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StockLogEntry"
+                type: array
+                default: null
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product)"
+      summary: Inventories the by its barcode given product (adds/removes based on
+        the given new amount)
+      tags:
+      - Stock "by-barcode"
+  /stock/products/by-barcode/{barcode}/open:
+    post:
+      parameters:
+      - description: Barcode
+        explode: false
+        in: path
+        name: barcode
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_products__productId__open_post_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StockLogEntry"
+                type: array
+                default: null
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing product, given amount > current unopened stock amount)"
+      summary: Marks the given amount of the by its barcode given product as opened
+      tags:
+      - Stock "by-barcode"
+  /stock/locations/{locationId}/entries:
+    get:
+      parameters:
+      - description: A valid location id
+        explode: false
+        in: path
+        name: locationId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - $ref: "#/components/parameters/query"
+      - $ref: "#/components/parameters/order"
+      - $ref: "#/components/parameters/limit"
+      - $ref: "#/components/parameters/offset"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StockEntry"
+                type: array
+                default: null
+          description: An array of StockEntry objects
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing location)"
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error500"
+          description: The operation was not successful (possible errors are invalid
+            field names or conditions in filter parameters provided)
+      summary: Returns all stock entries of the given location
+      tags:
+      - Stock
+  /stock/shoppinglist/add-missing-products:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_shoppinglist_add_missing_products_post_request"
+        required: false
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing shopping list)"
+      summary: Adds currently missing products (below defined min. stock amount) to
+        the given shopping list
+      tags:
+      - Stock
+  /stock/shoppinglist/add-overdue-products:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_shoppinglist_add_missing_products_post_request"
+        required: false
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing shopping list)"
+      summary: Adds overdue products to the given shopping list
+      tags:
+      - Stock
+  /stock/shoppinglist/add-expired-products:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_shoppinglist_add_missing_products_post_request"
+        required: false
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing shopping list)"
+      summary: Adds expired products to the given shopping list
+      tags:
+      - Stock
+  /stock/shoppinglist/clear:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_shoppinglist_clear_post_request"
+        required: false
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing shopping list)"
+      summary: Removes all items from the given shopping list
+      tags:
+      - Stock
+  /stock/shoppinglist/add-product:
+    post:
+      description: "If the product is already on the shopping list, the given amount\
+        \ will increase the amount of the already existing item, otherwise a new item\
+        \ will be added"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_shoppinglist_add_product_post_request"
+        required: true
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing shopping list, Invalid product id supplied)"
+      summary: Adds the given amount of the given product to the given shopping list
+      tags:
+      - Stock
+  /stock/shoppinglist/remove-product:
+    post:
+      description: "If the resulting amount is <= 0, the item will be completely removed\
+        \ from the given list, otherwise the given amount will reduce the amount of\
+        \ the existing item"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_stock_shoppinglist_remove_product_post_request"
+        required: true
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing shopping list, Invalid product id supplied)"
+      summary: "Removes the given amount of the given product from the given shopping\
+        \ list, if it is on it"
+      tags:
+      - Stock
+  /stock/bookings/{bookingId}:
+    get:
+      parameters:
+      - description: A valid stock booking id
+        explode: false
+        in: path
+        name: bookingId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockLogEntry"
+          description: A StockLogEntry object
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Invalid\
+            \ stock booking id)"
+      summary: Returns the given stock booking
+      tags:
+      - Stock
+  /stock/bookings/{bookingId}/undo:
+    post:
+      parameters:
+      - description: A valid stock booking id
+        explode: false
+        in: path
+        name: bookingId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing booking)"
+      summary: Undoes a booking
+      tags:
+      - Stock
+  /stock/transactions/{transactionId}:
+    get:
+      parameters:
+      - description: A valid stock transaction id
+        explode: false
+        in: path
+        name: transactionId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StockLogEntry"
+                type: array
+                default: null
+          description: An array of StockLogEntry objects
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing transaction)"
+      summary: Returns all stock bookings of the given transaction id
+      tags:
+      - Stock
+  /stock/transactions/{transactionId}/undo:
+    post:
+      parameters:
+      - description: A valid stock transaction id
+        explode: false
+        in: path
+        name: transactionId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing transaction)"
+      summary: Undoes a transaction
+      tags:
+      - Stock
+  /stock/barcodes/external-lookup/{barcode}:
+    get:
+      parameters:
+      - description: The barcode to lookup up
+        explode: false
+        in: path
+        name: barcode
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: "When true, the product is added to the database on a successful\
+          \ lookup and the new product id is in included in the response"
+        explode: true
+        in: query
+        name: add
+        required: false
+        schema:
+          default: false
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExternalBarcodeLookupResponse"
+          description: "An ExternalBarcodeLookupResponse object or null, when nothing\
+            \ was found for the given barcode"
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Plugin\
+            \ error)"
+      summary: Executes an external barcode lookoup via the configured plugin with
+        the given barcode
+      tags:
+      - Stock
+  /recipes/{recipeId}/add-not-fulfilled-products-to-shoppinglist:
+    post:
+      parameters:
+      - description: A valid recipe id
+        explode: false
+        in: path
+        name: recipeId
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_recipes__recipeId__add_not_fulfilled_products_to_shoppinglist_post_request"
+        required: false
+      responses:
+        "204":
+          description: The operation was successful
+      summary: Adds all missing products for the given recipe to the shopping list
+      tags:
+      - Recipes
+  /recipes/{recipeId}/fulfillment:
+    get:
+      parameters:
+      - description: A valid recipe id
+        explode: false
+        in: path
+        name: recipeId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecipeFulfillmentResponse"
+          description: A RecipeFulfillmentResponse object
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Get stock fulfillment information for the given recipe
+      tags:
+      - Recipes
+  /recipes/{recipeId}/consume:
+    post:
+      parameters:
+      - description: A valid recipe id
+        explode: false
+        in: path
+        name: recipeId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Invalid\
+            \ recipe id, recipe need is not fulfilled)"
+      summary: "Consumes all in stock ingredients of the given recipe (for ingredients\
+        \ that are only partially in stock, the in stock amount will be consumed)"
+      tags:
+      - Recipes
+  /recipes/fulfillment:
+    get:
+      parameters:
+      - $ref: "#/components/parameters/query"
+      - $ref: "#/components/parameters/order"
+      - $ref: "#/components/parameters/limit"
+      - $ref: "#/components/parameters/offset"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/RecipeFulfillmentResponse"
+                type: array
+                default: null
+          description: An array of RecipeFulfillmentResponse objects
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error500"
+          description: The operation was not successful (possible errors are invalid
+            field names or conditions in filter parameters provided)
+      summary: Get stock fulfillment information for all recipe
+      tags:
+      - Recipes
+  /recipes/{recipeId}/copy:
+    post:
+      parameters:
+      - description: A valid recipe id of the recipe to copy
+        explode: false
+        in: path
+        name: recipeId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_recipes__recipeId__copy_post_200_response"
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Invalid\
+            \ recipe id)"
+      summary: Copies a recipe
+      tags:
+      - Recipes
+  /recipes/{recipeId}/printlabel:
+    get:
+      parameters:
+      - description: A valid recipe id
+        explode: false
+        in: path
+        name: recipeId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: WebHook data
+                type: object
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing recipe, error on WebHook execution)"
+      summary: Prints the Grocycode label of the given recipe on the configured label
+        printer
+      tags:
+      - Recipes
+  /chores:
+    get:
+      parameters:
+      - $ref: "#/components/parameters/query"
+      - $ref: "#/components/parameters/order"
+      - $ref: "#/components/parameters/limit"
+      - $ref: "#/components/parameters/offset"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/CurrentChoreResponse"
+                type: array
+                default: null
+          description: An array of CurrentChoreResponse objects
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error500"
+          description: The operation was not successful (possible errors are invalid
+            field names or conditions in filter parameters provided)
+      summary: Returns all chores incl. the next estimated execution time per chore
+      tags:
+      - Chores
+  /chores/{choreId}:
+    get:
+      parameters:
+      - description: A valid chore id
+        explode: false
+        in: path
+        name: choreId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChoreDetailsResponse"
+          description: A ChoreDetailsResponse object
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing chore)"
+      summary: Returns details of the given chore
+      tags:
+      - Chores
+  /chores/{choreId}/execute:
+    post:
+      parameters:
+      - description: A valid chore id
+        explode: false
+        in: path
+        name: choreId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_chores__choreId__execute_post_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChoreLogEntry"
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing chore)"
+      summary: Tracks an execution of the given chore
+      tags:
+      - Chores
+  /chores/executions/{executionId}/undo:
+    post:
+      parameters:
+      - description: A valid chore execution id
+        explode: false
+        in: path
+        name: executionId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing booking)"
+      summary: Undoes a chore execution
+      tags:
+      - Chores
+  /chores/executions/calculate-next-assignments:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_chores_executions_calculate_next_assignments_post_request"
+        required: false
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: (Re)calculates all next user assignments of all chores
+      tags:
+      - Chores
+  /chores/{choreId}/printlabel:
+    get:
+      parameters:
+      - description: A valid chore id
+        explode: false
+        in: path
+        name: choreId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: WebHook data
+                type: object
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing chore, error on WebHook execution)"
+      summary: Prints the Grocycode label of the given chore on the configured label
+        printer
+      tags:
+      - Chores
+  /chores/{choreIdToKeep}/merge/{choreIdToRemove}:
+    post:
+      parameters:
+      - description: A valid chore id of the chore to keep
+        explode: false
+        in: path
+        name: choreIdToKeep
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: A valid chore id of the chore to remove
+        explode: false
+        in: path
+        name: choreIdToRemove
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Invalid\
+            \ chore id)"
+      summary: Merges two chores into one
+      tags:
+      - Chores
+  /batteries:
+    get:
+      parameters:
+      - $ref: "#/components/parameters/query"
+      - $ref: "#/components/parameters/order"
+      - $ref: "#/components/parameters/limit"
+      - $ref: "#/components/parameters/offset"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/CurrentBatteryResponse"
+                type: array
+                default: null
+          description: An array of CurrentBatteryResponse objects
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error500"
+          description: The operation was not successful (possible errors are invalid
+            field names or conditions in filter parameters provided)
+      summary: Returns all batteries incl. the next estimated charge time per battery
+      tags:
+      - Batteries
+  /batteries/{batteryId}:
+    get:
+      parameters:
+      - description: A valid battery id
+        explode: false
+        in: path
+        name: batteryId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatteryDetailsResponse"
+          description: A BatteryDetailsResponse object
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing battery)"
+      summary: Returns details of the given battery
+      tags:
+      - Batteries
+  /batteries/{batteryId}/charge:
+    post:
+      parameters:
+      - description: A valid battery id
+        explode: false
+        in: path
+        name: batteryId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_batteries__batteryId__charge_post_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatteryChargeCycleEntry"
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing battery)"
+      summary: Tracks a charge cycle of the given battery
+      tags:
+      - Batteries
+  /batteries/charge-cycles/{chargeCycleId}/undo:
+    post:
+      parameters:
+      - description: A valid charge cycle id
+        explode: false
+        in: path
+        name: chargeCycleId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing booking)"
+      summary: Undoes a battery charge cycle
+      tags:
+      - Batteries
+  /batteries/{batteryId}/printlabel:
+    get:
+      parameters:
+      - description: A valid battery id
+        explode: false
+        in: path
+        name: batteryId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: WebHook data
+                type: object
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing battery, error on WebHook execution)"
+      summary: Prints the Grocycode label of the given battery on the configured label
+        printer
+      tags:
+      - Batteries
+  /tasks:
+    get:
+      parameters:
+      - $ref: "#/components/parameters/query"
+      - $ref: "#/components/parameters/order"
+      - $ref: "#/components/parameters/limit"
+      - $ref: "#/components/parameters/offset"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/CurrentTaskResponse"
+                type: array
+                default: null
+          description: An array of CurrentTaskResponse objects
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error500"
+          description: The operation was not successful (possible errors are invalid
+            field names or conditions in filter parameters provided)
+      summary: Returns all tasks which are not done yet
+      tags:
+      - Tasks
+  /tasks/{taskId}/complete:
+    post:
+      parameters:
+      - description: A valid task id
+        explode: false
+        in: path
+        name: taskId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/_tasks__taskId__complete_post_request"
+        required: true
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing task)"
+      summary: Marks the given task as completed
+      tags:
+      - Tasks
+  /tasks/{taskId}/undo:
+    post:
+      parameters:
+      - description: A valid task id
+        explode: false
+        in: path
+        name: taskId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: The operation was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: "The operation was not successful (possible errors are: Not\
+            \ existing task)"
+      summary: Marks the given task as not completed
+      tags:
+      - Tasks
+  /calendar/ical:
+    get:
+      responses:
+        "200":
+          content:
+            text/calendar:
+              schema:
+                type: string
+          description: The iCal file contents
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Returns the calendar in iCal format
+      tags:
+      - Calendar
+  /calendar/ical/sharing-link:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_calendar_ical_sharing_link_get_200_response"
+          description: The (public) sharing link for the calendar in iCal format
+      summary: Returns a (public) sharing link for the calendar in iCal format
+      tags:
+      - Calendar
+  /print/shoppinglist/thermal:
+    get:
+      parameters:
+      - description: Shopping list id
+        explode: true
+        in: query
+        name: list
+        required: false
+        schema:
+          default: 1
+          type: integer
+        style: form
+      - description: Prints Grocy logo if true
+        explode: true
+        in: query
+        name: printHeader
+        required: false
+        schema:
+          default: true
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_print_shoppinglist_thermal_get_200_response"
+          description: Returns OK if the printing was successful
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
+          description: The operation was not successful
+      summary: Prints the shoppinglist with a thermal printer
+      tags:
+      - Print
+components:
+  parameters:
+    order:
+      description: "A valid field name by which the response should be ordered, use\
+        \ the separator `:` to specify the sort order (`asc` or `desc`, defaults to\
+        \ `asc` when omitted)"
+      explode: true
+      in: query
+      name: order
+      required: false
+      schema:
+        type: string
+      style: form
+    limit:
+      description: The maximum number of objects to return
+      explode: true
+      in: query
+      name: limit
+      required: false
+      schema:
+        type: integer
+      style: form
+    offset:
+      description: The number of objects to skip
+      explode: true
+      in: query
+      name: offset
+      required: false
+      schema:
+        type: integer
+      style: form
+    offsettime:
+      description: Offset of timestamp in seconds. Can be positive or negative.
+      explode: true
+      in: query
+      name: offset
+      required: false
+      schema:
+        type: integer
+      style: form
+    query:
+      description: "An array of filter conditions, each of them is a string in the\
+        \ form of `<field><condition><value>` where<br>`<field>` is a valid field\
+        \ name<br>`<condition>` is a comparison operator, one of<br>&nbsp;&nbsp;`=`\
+        \ equal<br>&nbsp;&nbsp;`!=` not equal<br>&nbsp;&nbsp;`~` LIKE<br>&nbsp;&nbsp;`!~`\
+        \ not LIKE<br>&nbsp;&nbsp;`<` less<br>&nbsp;&nbsp;`>` greater<br>&nbsp;&nbsp;`<=`\
+        \ less or equal<br>&nbsp;&nbsp;`>=` greater or equal<br>&nbsp;&nbsp;`§` regular\
+        \ expression<br>`<value>` is the value to search for"
+      explode: true
+      in: query
+      name: "query[]"
+      required: false
+      schema:
+        items:
+          type: string
+        type: array
+        default: null
+      style: form
+  schemas:
+    Product:
+      example:
+        id: "1"
+        name: Cookies
+        description: null
+        location_id: "4"
+        qu_id_purchase: "3"
+        qu_id_stock: "3"
+        min_stock_amount: "8"
+        default_best_before_days: "0"
+        row_created_timestamp: 2019-05-02 20:12:26
+        product_group_id: "1"
+        picture_file_name: cookies.jpg
+        default_best_before_days_after_open: "0"
+        enable_tare_weight_handling: "0"
+        tare_weight: "0.0"
+        not_check_stock_fulfillment_for_recipes: "0"
+        shopping_location_id: null
+        userfields: null
+        should_not_be_frozen: "1"
+        default_consume_location_id: "5"
+        move_on_open: "1"
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        location_id:
+          type: integer
+        qu_id_purchase:
+          type: integer
+        qu_id_stock:
+          type: integer
+        enable_tare_weight_handling:
+          type: integer
+        not_check_stock_fulfillment_for_recipes:
+          type: integer
+        product_group_id:
+          type: integer
+        tare_weight:
+          type: number
+        min_stock_amount:
+          default: 0
+          minimum: 0
+          type: number
+        default_best_before_days:
+          default: 0
+          minimum: 0
+          type: integer
+        default_best_before_days_after_open:
+          default: 0
+          minimum: 0
+          type: integer
+        picture_file_name:
+          type: string
+        row_created_timestamp:
+          format: date-time
+          type: string
+        shopping_location_id:
+          type: integer
+        treat_opened_as_out_of_stock:
+          type: integer
+        auto_reprint_stock_label:
+          type: integer
+        no_own_stock:
+          type: integer
+        userfields:
+          description: Key/value pairs of userfields
+          type: object
+        should_not_be_frozen:
+          type: integer
+        default_consume_location_id:
+          type: integer
+        move_on_open:
+          type: integer
+    ProductWithoutUserfields:
+      example:
+        id: "1"
+        name: Cookies
+        description: null
+        location_id: "4"
+        qu_id_purchase: "3"
+        qu_id_stock: "3"
+        min_stock_amount: "8"
+        default_best_before_days: "0"
+        row_created_timestamp: 2019-05-02 20:12:26
+        product_group_id: "1"
+        picture_file_name: cookies.jpg
+        default_best_before_days_after_open: "0"
+        enable_tare_weight_handling: "0"
+        tare_weight: "0.0"
+        not_check_stock_fulfillment_for_recipes: "0"
+        shopping_location_id: null
+        userfields: null
+        should_not_be_frozen: "1"
+        default_consume_location_id: "5"
+        move_on_open: "1"
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        location_id:
+          type: integer
+        qu_id_purchase:
+          type: integer
+        qu_id_stock:
+          type: integer
+        enable_tare_weight_handling:
+          type: integer
+        not_check_stock_fulfillment_for_recipes:
+          type: integer
+        product_group_id:
+          type: integer
+        tare_weight:
+          type: number
+        min_stock_amount:
+          default: 0
+          minimum: 0
+          type: number
+        default_best_before_days:
+          default: 0
+          minimum: 0
+          type: integer
+        default_best_before_days_after_open:
+          default: 0
+          minimum: 0
+          type: integer
+        picture_file_name:
+          type: string
+        row_created_timestamp:
+          format: date-time
+          type: string
+        shopping_location_id:
+          type: integer
+        treat_opened_as_out_of_stock:
+          type: integer
+        auto_reprint_stock_label:
+          type: integer
+        no_own_stock:
+          type: integer
+        should_not_be_frozen:
+          type: integer
+        default_consume_location_id:
+          type: integer
+        move_on_open:
+          type: integer
+    QuantityUnit:
+      example:
+        id: "2"
+        name: Piece
+        description: null
+        row_created_timestamp: 2019-05-02 20:12:25
+        name_plural: Pieces
+        plural_forms: null
+        userfields: null
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        name_plural:
+          type: string
+        description:
+          type: string
+        row_created_timestamp:
+          format: date-time
+          type: string
+        plural_forms:
+          type: string
+        userfields:
+          description: Key/value pairs of userfields
+          type: object
+    Location:
+      example:
+        id: "2"
+        name: "0"
+        description: null
+        row_created_timestamp: 2019-05-02 20:12:25
+        userfields: null
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        row_created_timestamp:
+          format: date-time
+          type: string
+        userfields:
+          description: Key/value pairs of userfields
+          type: object
+    ShoppingLocation:
+      example:
+        id: "2"
+        name: "0"
+        description: null
+        row_created_timestamp: 2019-05-02 20:12:25
+        userfields: null
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        row_created_timestamp:
+          format: date-time
+          type: string
+        userfields:
+          description: Key/value pairs of userfields
+          type: object
+    StockLocation:
+      example:
+        id: "1"
+        product_id: "3"
+        amount: "2"
+        location_id: "1"
+        name: Fridge
+      properties:
+        id:
+          type: integer
+        product_id:
+          type: integer
+        amount:
+          type: number
+        location_id:
+          type: integer
+        location_name:
+          type: string
+        location_is_freezer:
+          type: integer
+    StockEntry:
+      example:
+        id: "77"
+        product_id: "1"
+        amount: "2"
+        best_before_date: 2019-07-07
+        purchased_date: 2019-05-03
+        stock_id: 5ccc6b2421979
+        price: null
+        open: "0"
+        opened_date: null
+        row_created_timestamp: 2019-05-03 18:24:04
+        location_id: "4"
+        shopping_location_id: null
+      properties:
+        id:
+          type: integer
+        product_id:
+          type: integer
+        location_id:
+          type: integer
+        shopping_location_id:
+          type: integer
+        amount:
+          type: number
+        best_before_date:
+          format: date
+          type: string
+        purchased_date:
+          format: date
+          type: string
+        stock_id:
+          description: A unique id which references this stock entry during its lifetime
+          type: string
+        price:
+          type: number
+        open:
+          type: integer
+        opened_date:
+          format: date
+          type: string
+        note:
+          type: string
+        row_created_timestamp:
+          format: date-time
+          type: string
+    RecipeFulfillmentResponse:
+      example:
+        recipe_id: "1"
+        need_fulfilled: "0"
+        need_fulfilled_with_shopping_list: "0"
+        missing_products_count: "2"
+        costs: "17.74"
+      properties:
+        recipe_id:
+          type: integer
+        need_fulfilled:
+          type: boolean
+        need_fulfilled_with_shopping_list:
+          type: boolean
+        missing_products_count:
+          type: integer
+        costs:
+          type: number
+    ProductDetailsResponse:
+      example:
+        product:
+          id: "1"
+          name: Cookies
+          description: null
+          location_id: "4"
+          qu_id_purchase: "3"
+          qu_id_stock: "3"
+          min_stock_amount: "8"
+          default_best_before_days: "0"
+          row_created_timestamp: 2019-05-02 20:12:26
+          product_group_id: "1"
+          picture_file_name: cookies.jpg
+          default_best_before_days_after_open: "0"
+          enable_tare_weight_handling: "0"
+          tare_weight: "0.0"
+          not_check_stock_fulfillment_for_recipes: "0"
+          last_shopping_location_id: null
+        product_barcodes:
+        - id: "1"
+          product_id: "13"
+          barcode: "01321230213"
+          qu_id: "1"
+          shopping_location_id: "2"
+          amount: "10"
+        last_purchased: null
+        last_used: null
+        stock_amount: "2"
+        stock_amount_opened: null
+        default_quantity_unit_purchase:
+          id: "3"
+          name: Pack
+          description: null
+          row_created_timestamp: 2019-05-02 20:12:25
+          name_plural: Packs
+          plural_forms: null
+        quantity_unit_stock:
+          id: "3"
+          name: Pack
+          description: null
+          row_created_timestamp: 2019-05-02 20:12:25
+          name_plural: Packs
+          plural_forms: null
+        quantity_unit_price:
+          id: "3"
+          name: Pack
+          description: null
+          row_created_timestamp: 2019-05-02 20:12:25
+          name_plural: Packs
+          plural_forms: null
+        last_price: null
+        avg_price: null
+        current_price: null
+        last_shopping_location_id: null
+        next_due_date: 2019-07-07
+        location:
+          id: "4"
+          name: Candy cupboard
+          description: null
+          row_created_timestamp: 2019-05-02 20:12:25
+        average_shelf_life_days: -1
+        spoil_rate_percent: 0
+        default_consume_location: null
+      properties:
+        product:
+          $ref: "#/components/schemas/Product"
+        product_barcodes:
+          items:
+            $ref: "#/components/schemas/ProductBarcode"
+          type: array
+          default: null
+        quantity_unit_stock:
+          $ref: "#/components/schemas/QuantityUnit"
+        default_quantity_unit_purchase:
+          $ref: "#/components/schemas/QuantityUnit"
+        default_quantity_unit_consume:
+          $ref: "#/components/schemas/QuantityUnit"
+        quantity_unit_price:
+          $ref: "#/components/schemas/QuantityUnit"
+        last_purchased:
+          format: date
+          type: string
+        last_used:
+          format: date
+          type: string
+        stock_amount:
+          type: number
+        stock_amount_opened:
+          type: number
+        next_due_date:
+          format: date
+          type: string
+        last_price:
+          description: The price of the last purchase of the corresponding product
+          type: number
+        avg_price:
+          description: The average price af all stock entries currently in stock of
+            the corresponding product
+          type: number
+        current_price:
+          description: "The current price of the corresponding product, based on the\
+            \ stock entry to use next (defined by the default consume rule \"Opened\
+            \ first, then first due first, then first in first out\") or on the last\
+            \ price if the product is currently not in stock"
+          type: number
+        oldest_price:
+          deprecated: true
+          description: This field is deprecated and will be removed in a future version
+            (currently returns the same as `current_price`)
+          type: number
+        last_shopping_location_id:
+          type: integer
+        location:
+          $ref: "#/components/schemas/Location"
+        average_shelf_life_days:
+          type: number
+        spoil_rate_percent:
+          type: number
+        has_childs:
+          description: True when the product is a parent product of others
+          type: boolean
+        default_location:
+          $ref: "#/components/schemas/Location"
+        qu_conversion_factor_purchase_to_stock:
+          description: The conversion factor of the corresponding QU conversion from
+            the product's qu_id_purchase to qu_id_stock
+          type: number
+        qu_conversion_factor_price_to_stock:
+          description: The conversion factor of the corresponding QU conversion from
+            the product's qu_id_price to qu_id_stock
+          type: number
+    ProductPriceHistory:
+      example:
+        date: 2000-01-23T04:56:07.000+00:00
+        price: 0.8008281904610115
+        shopping_location:
+          id: "2"
+          name: "0"
+          description: null
+          row_created_timestamp: 2019-05-02 20:12:25
+          userfields: null
+      properties:
+        date:
+          format: date-time
+          type: string
+        price:
+          type: number
+        shopping_location:
+          $ref: "#/components/schemas/ShoppingLocation"
+    ProductBarcode:
+      properties:
+        product_id:
+          type: integer
+        barcode:
+          type: string
+        qu_id:
+          type: integer
+        shopping_location_id:
+          type: integer
+        amount:
+          type: number
+        last_price:
+          type: number
+        note:
+          type: string
+    Userfield:
+      properties:
+        entity:
+          type: string
+        name:
+          type: string
+        caption:
+          type: string
+        type:
+          type: string
+        show_as_column_in_tables:
+          type: boolean
+        config:
+          type: string
+        sort_number:
+          type: integer
+        input_required:
+          type: boolean
+        default_value:
+          type: string
+        row_created_timestamp:
+          format: date-time
+          type: string
+    ExternalBarcodeLookupResponse:
+      example:
+        name: name
+        location_id: 0
+        qu_id_purchase: 6
+        qu_id_stock: 1
+        qu_factor_purchase_to_stock: 5.962133916683182
+        barcode: barcode
+        id: 5
+      properties:
+        name:
+          type: string
+        location_id:
+          type: integer
+        qu_id_purchase:
+          type: integer
+        qu_id_stock:
+          type: integer
+        qu_factor_purchase_to_stock:
+          type: number
+        barcode:
+          description: Can contain multiple barcodes separated by comma
+          type: string
+        id:
+          description: "The id of the added product, only included when the producted\
+            \ was added to the database"
+          type: integer
+    ChoreDetailsResponse:
+      example:
+        chore:
+          id: 0
+          name: string
+          description: string
+          period_type: manually
+          period_days: 0
+          row_created_timestamp: 2019-05-04T11:31:04.563Z
+        last_tracked: 2019-05-04T11:31:04.563Z
+        track_count: 0
+        last_done_by:
+          id: 0
+          username: string
+          first_name: string
+          last_name: string
+          display_name: string
+          row_created_timestamp: 2019-05-04T11:31:04.564Z
+        next_estimated_execution_time: 2019-05-04T11:31:04.564Z
+      properties:
+        chore:
+          $ref: "#/components/schemas/Chore"
+        last_tracked:
+          description: When this chore was last tracked
+          format: date-time
+          type: string
+        track_count:
+          description: How often this chore was tracked so far
+          type: integer
+        last_done_by:
+          $ref: "#/components/schemas/UserDto"
+        next_estimated_execution_time:
+          format: date-time
+          type: string
+        next_execution_assigned_user:
+          $ref: "#/components/schemas/UserDto"
+        average_execution_frequency_hours:
+          description: "Contains the average past execution frequency in hours or\
+            \ `null`, when the chore was never executed before"
+          type: integer
+    BatteryDetailsResponse:
+      example:
+        battery:
+          id: "1"
+          name: Battery1
+          description: Warranty ends 2023
+          used_in: TV remote control
+          charge_interval_days: "0"
+          row_created_timestamp: 2019-05-02 20:12:26
+        last_charged: 2019-03-13 18:12:28
+        charge_cycles_count: 4
+        next_estimated_charge_time: 2999-12-31 23:59:59
+      properties:
+        chore:
+          $ref: "#/components/schemas/Battery"
+        last_charged:
+          description: When this battery was last charged
+          format: date-time
+          type: string
+        charge_cycles_count:
+          description: How often this battery was charged so far
+          type: integer
+        next_estimated_charge_time:
+          format: date-time
+          type: string
+    User:
+      example:
+        id: 0
+        username: username
+        first_name: first_name
+        last_name: last_name
+        password: password
+        picture_file_name: picture_file_name
+        row_created_timestamp: 2000-01-23T04:56:07.000+00:00
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        password:
+          type: string
+        picture_file_name:
+          type: string
+        row_created_timestamp:
+          format: date-time
+          type: string
+    UserDto:
+      description: A user object without the *password* and with an additional *display_name*
+        property
+      example:
+        id: 0
+        username: username
+        first_name: first_name
+        last_name: last_name
+        display_name: display_name
+        picture_file_name: picture_file_name
+        row_created_timestamp: 2000-01-23T04:56:07.000+00:00
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        display_name:
+          type: string
+        picture_file_name:
+          type: string
+        row_created_timestamp:
+          format: date-time
+          type: string
+    ApiKey:
+      properties:
+        id:
+          type: integer
+        api_key:
+          type: string
+        expires:
+          format: date-time
+          type: string
+        last_used:
+          format: date-time
+          type: string
+        row_created_timestamp:
+          format: date-time
+          type: string
+    ShoppingListItem:
+      properties:
+        id:
+          type: integer
+        shopping_list_id:
+          type: integer
+        product_id:
+          type: integer
+        note:
+          type: string
+        amount:
+          default: 0
+          description: The manual entered amount
+          minimum: 0
+          type: number
+        row_created_timestamp:
+          format: date-time
+          type: string
+        userfields:
+          description: Key/value pairs of userfields
+          type: object
+    Battery:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        used_in:
+          type: string
+        charge_interval_days:
+          default: 0
+          minimum: 0
+          type: integer
+        row_created_timestamp:
+          format: date-time
+          type: string
+        userfields:
+          description: Key/value pairs of userfields
+          type: object
+    BatteryChargeCycleEntry:
+      example:
+        id: 0
+        battery_id: 6
+        tracked_time: 2000-01-23T04:56:07.000+00:00
+        row_created_timestamp: 2000-01-23T04:56:07.000+00:00
+      properties:
+        id:
+          type: integer
+        battery_id:
+          type: integer
+        tracked_time:
+          format: date-time
+          type: string
+        row_created_timestamp:
+          format: date-time
+          type: string
+    Chore:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        period_type:
+          enum:
+          - manually
+          - hourly
+          - daily
+          - weekly
+          - monthly
+          type: string
+        period_config:
+          type: string
+        period_days:
+          type: integer
+        track_date_only:
+          type: boolean
+        rollover:
+          type: boolean
+        assignment_type:
+          enum:
+          - no-assignment
+          - who-least-did-first
+          - random
+          - in-alphabetical-order
+          type: string
+        assignment_config:
+          type: string
+        next_execution_assigned_to_user_id:
+          type: integer
+        start_date:
+          format: date-time
+          type: string
+        rescheduled_date:
+          format: date-time
+          type: string
+        rescheduled_next_execution_assigned_to_user_id:
+          type: integer
+        row_created_timestamp:
+          format: date-time
+          type: string
+        userfields:
+          description: Key/value pairs of userfields
+          type: object
+    ChoreLogEntry:
+      example:
+        id: 0
+        chore_id: 6
+        tracked_time: 2000-01-23T04:56:07.000+00:00
+        row_created_timestamp: 2000-01-23T04:56:07.000+00:00
+      properties:
+        id:
+          type: integer
+        chore_id:
+          type: integer
+        tracked_time:
+          format: date-time
+          type: string
+        row_created_timestamp:
+          format: date-time
+          type: string
+    StockLogEntry:
+      example:
+        id: 0
+        product_id: 6
+        amount: 1.4658129805029452
+        best_before_date: 2000-01-23
+        purchased_date: 2000-01-23
+        used_date: 2000-01-23
+        spoiled: false
+        stock_id: stock_id
+        transaction_id: transaction_id
+        transaction_type: purchase
+        note: note
+        row_created_timestamp: 2000-01-23T04:56:07.000+00:00
+      properties:
+        id:
+          type: integer
+        product_id:
+          type: integer
+        amount:
+          type: number
+        best_before_date:
+          format: date
+          type: string
+        purchased_date:
+          format: date
+          type: string
+        used_date:
+          format: date
+          type: string
+        spoiled:
+          default: false
+          type: boolean
+        stock_id:
+          type: string
+        transaction_id:
+          type: string
+        transaction_type:
+          $ref: "#/components/schemas/StockTransactionType"
+        note:
+          type: string
+        row_created_timestamp:
+          format: date-time
+          type: string
+    StockJournal:
+      example:
+        id: "1"
+        correlation_id: null
+        undone: "0"
+        undone_timestamp: null
+        transaction_type: purchase
+        spoiled: "0"
+        amount: "1"
+        location_id: "4"
+        location_name: Candy cupboard
+        product_name: Gummy bears
+        qu_name: Pack
+        qu_name_plural: Packs
+        user_display_name: Demo User
+        row_created_timestamp: 2020-11-14 16:42:21
+      properties:
+        correlation_id:
+          type: string
+        undone:
+          type: integer
+        undone_timestamp:
+          format: date-time
+          type: string
+        amount:
+          type: number
+        location_id:
+          type: integer
+        location_name:
+          type: string
+        product_name:
+          type: string
+        qu_name:
+          type: string
+        qu_name_plural:
+          type: string
+        user_display_name:
+          type: string
+        spoiled:
+          default: false
+          type: boolean
+        transaction_type:
+          $ref: "#/components/schemas/StockTransactionType"
+        row_created_timestamp:
+          format: date-time
+          type: string
+    StockJournalSummary:
+      example:
+        id: "1"
+        user_id: "1"
+        user_display_name: Demo User
+        product_name: Chocolate
+        product_id: "2"
+        transaction_type: purchase
+        qu_name: Pack
+        qu_name_plural: Packs
+        amount: "1"
+      properties:
+        amount:
+          type: number
+        user_id:
+          type: integer
+        product_name:
+          type: string
+        product_id:
+          type: integer
+        qu_name:
+          type: string
+        qu_name_plural:
+          type: string
+        user_display_name:
+          type: string
+        transaction_type:
+          $ref: "#/components/schemas/StockTransactionType"
+    Error400:
+      example:
+        error_message: The error message...
+      properties:
+        error_message:
+          type: string
+    Error500:
+      example:
+        error_message: The error message...
+      properties:
+        error_message:
+          type: string
+        error_details:
+          $ref: "#/components/schemas/Error500_error_details"
+    CurrentStockResponse:
+      example:
+        product_id: 0
+        amount: 6.027456183070403
+        amount_aggregated: 1.4658129805029452
+        amount_opened: 5.962133916683182
+        amount_opened_aggregated: 5.637376656633329
+        best_before_date: 2000-01-23
+        is_aggregated_amount: true
+        product:
+          id: "1"
+          name: Cookies
+          description: null
+          location_id: "4"
+          qu_id_purchase: "3"
+          qu_id_stock: "3"
+          min_stock_amount: "8"
+          default_best_before_days: "0"
+          row_created_timestamp: 2019-05-02 20:12:26
+          product_group_id: "1"
+          picture_file_name: cookies.jpg
+          default_best_before_days_after_open: "0"
+          enable_tare_weight_handling: "0"
+          tare_weight: "0.0"
+          not_check_stock_fulfillment_for_recipes: "0"
+          shopping_location_id: null
+          userfields: null
+          should_not_be_frozen: "1"
+          default_consume_location_id: "5"
+          move_on_open: "1"
+      properties:
+        product_id:
+          type: integer
+        amount:
+          type: number
+        amount_aggregated:
+          type: number
+        amount_opened:
+          type: number
+        amount_opened_aggregated:
+          type: number
+        best_before_date:
+          description: The next due date for this product
+          format: date
+          type: string
+        is_aggregated_amount:
+          description: Indicates wheter this product has sub-products or not / if
+            the fields `amount_aggregated` and `amount_opened_aggregated` are filled
+          type: boolean
+        product:
+          $ref: "#/components/schemas/ProductWithoutUserfields"
+    CurrentChoreResponse:
+      example:
+        chore_id: 0
+        chore_name: chore_name
+        last_tracked_time: 2000-01-23T04:56:07.000+00:00
+        track_date_only: true
+        next_estimated_execution_time: 2000-01-23T04:56:07.000+00:00
+        next_execution_assigned_to_user_id: 6
+        is_rescheduled: true
+        is_reassigned: true
+        next_execution_assigned_user:
+          id: 0
+          username: username
+          first_name: first_name
+          last_name: last_name
+          display_name: display_name
+          picture_file_name: picture_file_name
+          row_created_timestamp: 2000-01-23T04:56:07.000+00:00
+      properties:
+        chore_id:
+          type: integer
+        chore_name:
+          type: string
+        last_tracked_time:
+          format: date-time
+          type: string
+        track_date_only:
+          type: boolean
+        next_estimated_execution_time:
+          description: "The next estimated execution time of this chore, 2999-12-31\
+            \ 23:59:59 when the given chore has a period_type of manually"
+          format: date-time
+          type: string
+        next_execution_assigned_to_user_id:
+          type: integer
+        is_rescheduled:
+          type: boolean
+        is_reassigned:
+          type: boolean
+        next_execution_assigned_user:
+          $ref: "#/components/schemas/UserDto"
+    CurrentBatteryResponse:
+      example:
+        battery_id: 0
+        last_tracked_time: 2000-01-23T04:56:07.000+00:00
+        next_estimated_charge_time: 2000-01-23T04:56:07.000+00:00
+      properties:
+        battery_id:
+          type: integer
+        last_tracked_time:
+          format: date-time
+          type: string
+        next_estimated_charge_time:
+          description: "The next estimated charge time of this battery, 2999-12-31\
+            \ 23:59:59 when the given battery has no charge_interval_days defined"
+          format: date-time
+          type: string
+    CurrentVolatilStockResponse:
+      example:
+        due_products:
+        - product_id: 0
+          amount: 6.027456183070403
+          amount_aggregated: 1.4658129805029452
+          amount_opened: 5.962133916683182
+          amount_opened_aggregated: 5.637376656633329
+          best_before_date: 2000-01-23
+          is_aggregated_amount: true
+          product:
+            id: "1"
+            name: Cookies
+            description: null
+            location_id: "4"
+            qu_id_purchase: "3"
+            qu_id_stock: "3"
+            min_stock_amount: "8"
+            default_best_before_days: "0"
+            row_created_timestamp: 2019-05-02 20:12:26
+            product_group_id: "1"
+            picture_file_name: cookies.jpg
+            default_best_before_days_after_open: "0"
+            enable_tare_weight_handling: "0"
+            tare_weight: "0.0"
+            not_check_stock_fulfillment_for_recipes: "0"
+            shopping_location_id: null
+            userfields: null
+            should_not_be_frozen: "1"
+            default_consume_location_id: "5"
+            move_on_open: "1"
+        - product_id: 0
+          amount: 6.027456183070403
+          amount_aggregated: 1.4658129805029452
+          amount_opened: 5.962133916683182
+          amount_opened_aggregated: 5.637376656633329
+          best_before_date: 2000-01-23
+          is_aggregated_amount: true
+          product:
+            id: "1"
+            name: Cookies
+            description: null
+            location_id: "4"
+            qu_id_purchase: "3"
+            qu_id_stock: "3"
+            min_stock_amount: "8"
+            default_best_before_days: "0"
+            row_created_timestamp: 2019-05-02 20:12:26
+            product_group_id: "1"
+            picture_file_name: cookies.jpg
+            default_best_before_days_after_open: "0"
+            enable_tare_weight_handling: "0"
+            tare_weight: "0.0"
+            not_check_stock_fulfillment_for_recipes: "0"
+            shopping_location_id: null
+            userfields: null
+            should_not_be_frozen: "1"
+            default_consume_location_id: "5"
+            move_on_open: "1"
+        overdue_products:
+        - product_id: 0
+          amount: 6.027456183070403
+          amount_aggregated: 1.4658129805029452
+          amount_opened: 5.962133916683182
+          amount_opened_aggregated: 5.637376656633329
+          best_before_date: 2000-01-23
+          is_aggregated_amount: true
+          product:
+            id: "1"
+            name: Cookies
+            description: null
+            location_id: "4"
+            qu_id_purchase: "3"
+            qu_id_stock: "3"
+            min_stock_amount: "8"
+            default_best_before_days: "0"
+            row_created_timestamp: 2019-05-02 20:12:26
+            product_group_id: "1"
+            picture_file_name: cookies.jpg
+            default_best_before_days_after_open: "0"
+            enable_tare_weight_handling: "0"
+            tare_weight: "0.0"
+            not_check_stock_fulfillment_for_recipes: "0"
+            shopping_location_id: null
+            userfields: null
+            should_not_be_frozen: "1"
+            default_consume_location_id: "5"
+            move_on_open: "1"
+        - product_id: 0
+          amount: 6.027456183070403
+          amount_aggregated: 1.4658129805029452
+          amount_opened: 5.962133916683182
+          amount_opened_aggregated: 5.637376656633329
+          best_before_date: 2000-01-23
+          is_aggregated_amount: true
+          product:
+            id: "1"
+            name: Cookies
+            description: null
+            location_id: "4"
+            qu_id_purchase: "3"
+            qu_id_stock: "3"
+            min_stock_amount: "8"
+            default_best_before_days: "0"
+            row_created_timestamp: 2019-05-02 20:12:26
+            product_group_id: "1"
+            picture_file_name: cookies.jpg
+            default_best_before_days_after_open: "0"
+            enable_tare_weight_handling: "0"
+            tare_weight: "0.0"
+            not_check_stock_fulfillment_for_recipes: "0"
+            shopping_location_id: null
+            userfields: null
+            should_not_be_frozen: "1"
+            default_consume_location_id: "5"
+            move_on_open: "1"
+        expired_products:
+        - product_id: 0
+          amount: 6.027456183070403
+          amount_aggregated: 1.4658129805029452
+          amount_opened: 5.962133916683182
+          amount_opened_aggregated: 5.637376656633329
+          best_before_date: 2000-01-23
+          is_aggregated_amount: true
+          product:
+            id: "1"
+            name: Cookies
+            description: null
+            location_id: "4"
+            qu_id_purchase: "3"
+            qu_id_stock: "3"
+            min_stock_amount: "8"
+            default_best_before_days: "0"
+            row_created_timestamp: 2019-05-02 20:12:26
+            product_group_id: "1"
+            picture_file_name: cookies.jpg
+            default_best_before_days_after_open: "0"
+            enable_tare_weight_handling: "0"
+            tare_weight: "0.0"
+            not_check_stock_fulfillment_for_recipes: "0"
+            shopping_location_id: null
+            userfields: null
+            should_not_be_frozen: "1"
+            default_consume_location_id: "5"
+            move_on_open: "1"
+        - product_id: 0
+          amount: 6.027456183070403
+          amount_aggregated: 1.4658129805029452
+          amount_opened: 5.962133916683182
+          amount_opened_aggregated: 5.637376656633329
+          best_before_date: 2000-01-23
+          is_aggregated_amount: true
+          product:
+            id: "1"
+            name: Cookies
+            description: null
+            location_id: "4"
+            qu_id_purchase: "3"
+            qu_id_stock: "3"
+            min_stock_amount: "8"
+            default_best_before_days: "0"
+            row_created_timestamp: 2019-05-02 20:12:26
+            product_group_id: "1"
+            picture_file_name: cookies.jpg
+            default_best_before_days_after_open: "0"
+            enable_tare_weight_handling: "0"
+            tare_weight: "0.0"
+            not_check_stock_fulfillment_for_recipes: "0"
+            shopping_location_id: null
+            userfields: null
+            should_not_be_frozen: "1"
+            default_consume_location_id: "5"
+            move_on_open: "1"
+        missing_products:
+        - id: 0
+          name: name
+          amount_missing: 6.027456183070403
+          is_partly_in_stock: 1
+        - id: 0
+          name: name
+          amount_missing: 6.027456183070403
+          is_partly_in_stock: 1
+      properties:
+        due_products:
+          items:
+            $ref: "#/components/schemas/CurrentStockResponse"
+          type: array
+          default: null
+        overdue_products:
+          items:
+            $ref: "#/components/schemas/CurrentStockResponse"
+          type: array
+          default: null
+        expired_products:
+          items:
+            $ref: "#/components/schemas/CurrentStockResponse"
+          type: array
+          default: null
+        missing_products:
+          items:
+            $ref: "#/components/schemas/CurrentVolatilStockResponse_missing_products_inner"
+          type: array
+          default: null
+    Task:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        due_date:
+          format: date-time
+          type: string
+        done:
+          type: integer
+        done_timestamp:
+          format: date-time
+          type: string
+        category_id:
+          type: integer
+        assigned_to_user_id:
+          type: integer
+        row_created_timestamp:
+          format: date-time
+          type: string
+        userfields:
+          description: Key/value pairs of userfields
+          type: object
+    TaskCategory:
+      example:
+        id: 5
+        name: name
+        description: description
+        row_created_timestamp: 2000-01-23T04:56:07.000+00:00
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        row_created_timestamp:
+          format: date-time
+          type: string
+    CurrentTaskResponse:
+      example:
+        id: 0
+        name: name
+        description: description
+        due_date: 2000-01-23T04:56:07.000+00:00
+        done: 6
+        done_timestamp: 2000-01-23T04:56:07.000+00:00
+        category_id: 1
+        assigned_to_user_id: 5
+        row_created_timestamp: 2000-01-23T04:56:07.000+00:00
+        assigned_to_user:
+          id: 0
+          username: username
+          first_name: first_name
+          last_name: last_name
+          display_name: display_name
+          picture_file_name: picture_file_name
+          row_created_timestamp: 2000-01-23T04:56:07.000+00:00
+        category:
+          id: 5
+          name: name
+          description: description
+          row_created_timestamp: 2000-01-23T04:56:07.000+00:00
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        due_date:
+          format: date-time
+          type: string
+        done:
+          type: integer
+        done_timestamp:
+          format: date-time
+          type: string
+        category_id:
+          type: integer
+        assigned_to_user_id:
+          type: integer
+        row_created_timestamp:
+          format: date-time
+          type: string
+        assigned_to_user:
+          $ref: "#/components/schemas/UserDto"
+        category:
+          $ref: "#/components/schemas/TaskCategory"
+    DbChangedTimeResponse:
+      example:
+        changed_time: 2000-01-23T04:56:07.000+00:00
+      properties:
+        changed_time:
+          format: date-time
+          type: string
+    TimeResponse:
+      example:
+        timezone: timezone
+        time_local: 2000-01-23T04:56:07.000+00:00
+        time_local_sqlite3: 2000-01-23T04:56:07.000+00:00
+        time_utc: 2000-01-23T04:56:07.000+00:00
+        timestamp: 0
+        offset: 6
+      properties:
+        timezone:
+          type: string
+        time_local:
+          format: date-time
+          type: string
+        time_local_sqlite3:
+          format: date-time
+          type: string
+        time_utc:
+          format: date-time
+          type: string
+        timestamp:
+          type: integer
+        offset:
+          type: integer
+    UserSetting:
+      example:
+        value: value
+      properties:
+        value:
+          type: string
+    MissingLocalizationRequest:
+      example:
+        text: text
+      properties:
+        text:
+          type: string
+    ExposedEntity:
+      enum:
+      - products
+      - chores
+      - product_barcodes
+      - batteries
+      - locations
+      - quantity_units
+      - quantity_unit_conversions
+      - shopping_list
+      - shopping_lists
+      - shopping_locations
+      - recipes
+      - recipes_pos
+      - recipes_nestings
+      - tasks
+      - task_categories
+      - product_groups
+      - equipment
+      - api_keys
+      - userfields
+      - userentities
+      - userobjects
+      - meal_plan
+      - stock_log
+      - stock
+      - stock_current_locations
+      - chores_log
+      - meal_plan_sections
+      - products_last_purchased
+      - products_average_price
+      - quantity_unit_conversions_resolved
+      - recipes_pos_resolved
+      - battery_charge_cycles
+      - product_barcodes_view
+      - permission_hierarchy
+      - uihelper_shopping_list
+      - sessions
+      type: string
+    ExposedEntityNoListing:
+      enum:
+      - api_keys
+      - sessions
+      type: string
+    ExposedEntityNoEdit:
+      enum:
+      - stock_log
+      - api_keys
+      - stock
+      - stock_current_locations
+      - chores_log
+      - products_last_purchased
+      - products_average_price
+      - quantity_unit_conversions_resolved
+      - recipes_pos_resolved
+      - battery_charge_cycles
+      - product_barcodes_view
+      - permission_hierarchy
+      - uihelper_shopping_list
+      - sessions
+      type: string
+    ExposedEntityNoDelete:
+      enum:
+      - stock_log
+      - stock
+      - stock_current_locations
+      - chores_log
+      - products_last_purchased
+      - products_average_price
+      - quantity_unit_conversions_resolved
+      - recipes_pos_resolved
+      - battery_charge_cycles
+      - product_barcodes_view
+      - permission_hierarchy
+      - uihelper_shopping_list
+      type: string
+    ExposedEntityEditRequiresAdmin:
+      type: string
+    StockTransactionType:
+      enum:
+      - purchase
+      - consume
+      - inventory-correction
+      - product-opened
+      type: string
+    FileGroups:
+      enum:
+      - equipmentmanuals
+      - recipepictures
+      - productpictures
+      - userfiles
+      - userpictures
+      type: string
+    StringEnumTemplate:
+      enum:
+      - ""
+      type: string
+    _system_info_get_200_response_grocy_version:
+      example:
+        Version: Version
+        ReleaseDate: 2000-01-23
+      properties:
+        Version:
+          type: string
+        ReleaseDate:
+          format: date
+          type: string
+    _system_info_get_200_response:
+      example:
+        grocy_version:
+          Version: Version
+          ReleaseDate: 2000-01-23
+        php_version: php_version
+        sqlite_version: sqlite_version
+      properties:
+        grocy_version:
+          $ref: "#/components/schemas/_system_info_get_200_response_grocy_version"
+        php_version:
+          type: string
+        sqlite_version:
+          type: string
+    _objects__entity__get_200_response_inner:
+      oneOf:
+      - $ref: "#/components/schemas/Product"
+      - $ref: "#/components/schemas/Chore"
+      - $ref: "#/components/schemas/Battery"
+      - $ref: "#/components/schemas/Location"
+      - $ref: "#/components/schemas/QuantityUnit"
+      - $ref: "#/components/schemas/ShoppingListItem"
+      - $ref: "#/components/schemas/StockEntry"
+      - $ref: "#/components/schemas/ProductBarcode"
+      - $ref: "#/components/schemas/Userfield"
+    _objects__entity__post_200_response:
+      example:
+        created_object_id: 0
+      properties:
+        created_object_id:
+          description: The id of the created object
+          type: integer
+    _users__userId__permissions_get_200_response_inner:
+      example:
+        permission_id: 0
+        user_id: 6
+      properties:
+        permission_id:
+          type: integer
+        user_id:
+          type: integer
+    _users__userId__permissions_put_request:
+      properties:
+        permissions:
+          description: A list of permission ids
+          items:
+            type: integer
+          type: array
+          default: null
+    _users__userId__permissions_post_request:
+      properties:
+        permissions_id:
+          description: A permission ids
+          type: integer
+    _stock_entry__entryId__put_request:
+      example:
+        id: "2"
+        amount: "1"
+        best_before_date: 2021-07-19
+        purchased_date: 2020-01-01
+        price: "22.03"
+        open: false
+        location_id: "4"
+      properties:
+        amount:
+          description: "The amount to add - please note that when tare weight handling\
+            \ for the product is enabled, this needs to be the amount including the\
+            \ container weight (gross), the amount to be posted will be automatically\
+            \ calculated based on what is in stock and the defined tare weight"
+          type: number
+        best_before_date:
+          description: "The due date of the product to add, when omitted, the current\
+            \ date is used"
+          format: date
+          type: string
+        price:
+          description: The price per stock quantity unit in configured currency
+          type: number
+        open:
+          description: If the stock entry was already opened or not
+          type: boolean
+        location_id:
+          description: "If omitted, the default location of the product is used"
+          type: integer
+        shopping_location_id:
+          description: "If omitted, no store will be affected"
+          type: integer
+        purchased_date:
+          description: The date when this stock entry was purchased
+          format: date
+          type: string
+    _stock_products__productId__add_post_request:
+      example:
+        amount: 1
+        best_before_date: 2019-01-19
+        transaction_type: purchase
+        price: "1.99"
+      properties:
+        amount:
+          description: "The amount to add - please note that when tare weight handling\
+            \ for the product is enabled, this needs to be the amount including the\
+            \ container weight (gross), the amount to be posted will be automatically\
+            \ calculated based on what is in stock and the defined tare weight"
+          type: number
+        best_before_date:
+          description: "The due date of the product to add, when omitted, the current\
+            \ date is used"
+          format: date
+          type: string
+        transaction_type:
+          $ref: "#/components/schemas/StockTransactionType"
+        price:
+          description: The price per stock quantity unit in configured currency
+          type: number
+        location_id:
+          description: "If omitted, the default location of the product is used"
+          type: integer
+        shopping_location_id:
+          description: "If omitted, no store will be affected"
+          type: integer
+        stock_label_type:
+          description: "`1` = No label, `2` = Single label, `3` = Label per unit"
+          type: integer
+        note:
+          description: An optional note for the corresponding stock entry
+          type: string
+    _stock_products__productId__consume_post_request:
+      example:
+        amount: 1
+        transaction_type: consume
+        spoiled: false
+      properties:
+        amount:
+          description: "The amount to remove - please note that when tare weight handling\
+            \ for the product is enabled, this needs to be the amount including the\
+            \ container weight (gross), the amount to be posted will be automatically\
+            \ calculated based on what is in stock and the defined tare weight"
+          type: number
+        transaction_type:
+          $ref: "#/components/schemas/StockTransactionType"
+        spoiled:
+          description: "True when the given product was spoiled, defaults to false"
+          type: boolean
+        stock_entry_id:
+          description: "A specific stock entry id to consume, if used, the amount\
+            \ has to be 1"
+          type: string
+        recipe_id:
+          description: A valid recipe id for which this product was used (for statistical
+            purposes only)
+          type: integer
+        location_id:
+          description: "A valid location id (if supplied, only stock at the given\
+            \ location is considered, if ommitted, stock of any location is considered)"
+          type: integer
+        exact_amount:
+          description: "For tare weight handling enabled products, `true` when the\
+            \ given is the absolute amount to be consumed, not the amount including\
+            \ the container weight"
+          type: boolean
+        allow_subproduct_substitution:
+          description: '`true` when any in stock sub product should be used when the
+            given product is a parent product and currently not in stock'
+          type: boolean
+    _stock_products__productId__transfer_post_request:
+      example:
+        amount: 1
+        location_id_from: 1
+        location_id_to: 2
+      properties:
+        amount:
+          description: "The amount to transfer - please note that when tare weight\
+            \ handling for the product is enabled, this needs to be the amount including\
+            \ the container weight (gross), the amount to be posted will be automatically\
+            \ calculated based on what is in stock and the defined tare weight"
+          type: number
+        location_id_from:
+          description: "A valid location id, the location from where the product should\
+            \ be transfered"
+          type: integer
+        location_id_to:
+          description: "A valid location id, the location to where the product should\
+            \ be transfered"
+          type: integer
+        stock_entry_id:
+          description: "A specific stock entry id to transfer, if used, the amount\
+            \ has to be 1"
+          type: string
+    _stock_products__productId__inventory_post_request:
+      properties:
+        new_amount:
+          description: "The new current amount for the given product - please note\
+            \ that when tare weight handling for the product is enabled, this needs\
+            \ to be the amount including the container weight (gross), the amount\
+            \ to be posted will be automatically calculated based on what is in stock\
+            \ and the defined tare weight"
+          type: number
+        best_before_date:
+          description: The due date which applies to added products
+          format: date
+          type: string
+        shopping_location_id:
+          description: "If omitted, no store will be affected"
+          type: integer
+        location_id:
+          description: "If omitted, the default location of the product is used (only\
+            \ applies to added products)"
+          type: integer
+        price:
+          description: "If omitted, the last price of the product is used (only applies\
+            \ to added products)"
+          type: number
+        stock_label_type:
+          description: "`1` = No label, `2` = Single label, `3` = Label per unit (only\
+            \ applies to added products)"
+          type: integer
+        note:
+          description: An optional note for the corresponding stock entry (only applies
+            to added products)
+          type: string
+    _stock_products__productId__open_post_request:
+      example:
+        amount: 1
+      properties:
+        amount:
+          description: The amount to mark as opened
+          type: number
+        stock_entry_id:
+          description: "A specific stock entry id to open, if used, the amount has\
+            \ to be 1"
+          type: string
+        allow_subproduct_substitution:
+          description: '`true` when any in stock sub product should be used when the
+            given product is a parent product and currently not in stock'
+          type: boolean
+        location_id:
+          description: "A valid location id (if supplied, only stock at the given\
+            \ location is considered, if ommitted, stock of any location is considered)"
+          type: integer
+    _stock_products__productId__copy_post_200_response:
+      example:
+        created_object_id: 0
+      properties:
+        created_object_id:
+          description: The id of the created product
+          type: integer
+    _stock_products_by_barcode__barcode__add_post_request:
+      example:
+        amount: 1
+        best_before_date: 2019-01-19
+        transaction_type: purchase
+        price: "1.99"
+      properties:
+        amount:
+          description: "The amount to add - please note that when tare weight handling\
+            \ for the product is enabled, this needs to be the amount including the\
+            \ container weight (gross), the amount to be posted will be automatically\
+            \ calculated based on what is in stock and the defined tare weight"
+          type: number
+        best_before_date:
+          description: "The due date of the product to add, when omitted, the current\
+            \ date is used"
+          format: date
+          type: string
+        transaction_type:
+          $ref: "#/components/schemas/StockTransactionType"
+        price:
+          description: The price per stock quantity unit in configured currency
+          type: number
+        location_id:
+          description: "If omitted, the default location of the product is used"
+          type: integer
+    _stock_products_by_barcode__barcode__inventory_post_request:
+      properties:
+        new_amount:
+          description: "The new current amount for the given product - please note\
+            \ that when tare weight handling for the product is enabled, this needs\
+            \ to be the amount including the container weight (gross), the amount\
+            \ to be posted will be automatically calculated based on what is in stock\
+            \ and the defined tare weight"
+          type: number
+        best_before_date:
+          description: The due date which applies to added products
+          format: date
+          type: string
+        location_id:
+          description: "If omitted, the default location of the product is used (only\
+            \ applies to added products)"
+          type: integer
+        price:
+          description: "If omitted, the last price of the product is used (only applies\
+            \ to added products)"
+          type: number
+    _stock_shoppinglist_add_missing_products_post_request:
+      example:
+        list_id: 2
+      properties:
+        list_id:
+          description: "The shopping list to use, when omitted, the default shopping\
+            \ list (with id 1) is used"
+          type: integer
+    _stock_shoppinglist_clear_post_request:
+      example:
+        list_id: 2
+        done_only: false
+      properties:
+        list_id:
+          description: "The shopping list id to clear, when omitted, the default shopping\
+            \ list (with id 1) is used"
+          type: integer
+        done_only:
+          description: "When `true`, only done items will be removed (defaults to\
+            \ `false` when ommited)"
+          type: boolean
+    _stock_shoppinglist_add_product_post_request:
+      example:
+        product_id: 3
+        list_id: 2
+        product_amount: 5
+        note: This is the note of the shopping list item...
+      properties:
+        product_id:
+          description: A valid product id of the product to be added
+          type: integer
+        qu_id:
+          description: "A valid quantity unit id (used only for display; the amount\
+            \ needs to be related to the products stock QU), when omitted, the products\
+            \ stock QU is used"
+          type: integer
+        list_id:
+          description: "A valid shopping list id, when omitted, the default shopping\
+            \ list (with id 1) is used"
+          type: integer
+        product_amount:
+          description: "The amount (related to the products stock QU) to add, when\
+            \ omitted, the default amount of 1 is used"
+          type: number
+        note:
+          description: The note of the shopping list item
+          type: string
+    _stock_shoppinglist_remove_product_post_request:
+      example:
+        product_id: 3
+        list_id: 2
+        product_amount: 5
+      properties:
+        product_id:
+          description: A valid product id of the item on the shopping list
+          type: integer
+        list_id:
+          description: "A valid shopping list id, when omitted, the default shopping\
+            \ list (with id 1) is used"
+          type: integer
+        product_amount:
+          description: "The amount of product units to remove, when omitted, the default\
+            \ amount of 1 is used"
+          type: number
+    _recipes__recipeId__add_not_fulfilled_products_to_shoppinglist_post_request:
+      properties:
+        excludedProductIds:
+          description: An optional array of product ids to exclude them from being
+            put on the shopping list
+          items:
+            type: integer
+          type: array
+          default: null
+    _recipes__recipeId__copy_post_200_response:
+      example:
+        created_object_id: 0
+      properties:
+        created_object_id:
+          description: The id of the created recipe
+          type: integer
+    _chores__choreId__execute_post_request:
+      properties:
+        tracked_time:
+          description: "The time of when the chore was executed, when omitted, the\
+            \ current time is used"
+          format: date-time
+          type: string
+        done_by:
+          description: "A valid user id of who executed this chore, when omitted,\
+            \ the currently authenticated user will be used"
+          type: integer
+        skipped:
+          default: false
+          description: "`true` when the execution should be tracked as skipped, defaults\
+            \ to `false` when omitted"
+          type: boolean
+    _chores_executions_calculate_next_assignments_post_request:
+      example:
+        chore_id: 1
+      properties:
+        chore_id:
+          description: "The chore id of the chore which next user assignment should\
+            \ be (re)calculated, when omitted, the next user assignments of all chores\
+            \ will (re)caluclated"
+          type: integer
+    _batteries__batteryId__charge_post_request:
+      properties:
+        tracked_time:
+          description: "The time of when the battery was charged, when omitted, the\
+            \ current time is used"
+          format: date-time
+          type: string
+    _tasks__taskId__complete_post_request:
+      properties:
+        done_time:
+          description: "The time of when the task was completed, when omitted, the\
+            \ current time is used"
+          format: date-time
+          type: string
+    _calendar_ical_sharing_link_get_200_response:
+      example:
+        url: url
+      properties:
+        url:
+          type: string
+    _print_shoppinglist_thermal_get_200_response:
+      example:
+        result: result
+      properties:
+        result:
+          type: string
+    Error500_error_details:
+      properties:
+        stack_trace:
+          type: string
+        file:
+          type: string
+        line:
+          type: integer
+    CurrentVolatilStockResponse_missing_products_inner:
+      example:
+        id: 0
+        name: name
+        amount_missing: 6.027456183070403
+        is_partly_in_stock: 1
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        amount_missing:
+          type: number
+        is_partly_in_stock:
+          type: integer
+  securitySchemes:
+    ApiKeyAuth:
+      in: header
+      name: GROCY-API-KEY
+      type: apiKey
+

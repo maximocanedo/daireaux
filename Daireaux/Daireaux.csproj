@@ -29,6 +29,7 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
@@ -41,6 +42,7 @@
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
     <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
     <DebugSymbols>true</DebugSymbols>
@@ -119,11 +121,105 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Core\Client\ApiException.cs" />
+    <Compile Include="Core\Client\ApiFactory.cs" />
+    <Compile Include="Core\Client\ApiKeyToken.cs" />
+    <Compile Include="Core\Client\ApiResponseEventArgs.cs" />
+    <Compile Include="Core\Client\ApiResponse`1.cs" />
+    <Compile Include="Core\Client\ClientUtils.cs" />
+    <Compile Include="Core\Client\CookieContainer.cs" />
+    <Compile Include="Core\Client\DateTimeJsonConverter.cs" />
+    <Compile Include="Core\Client\DateTimeNullableJsonConverter.cs" />
+    <Compile Include="Core\Client\ExceptionEventArgs.cs" />
+    <Compile Include="Core\Client\FileParameter.cs" />
+    <Compile Include="Core\Client\HostConfiguration.cs" />
+    <Compile Include="Core\Client\JsonSerializerOptionsProvider.cs" />
+    <Compile Include="Core\Client\Option.cs" />
+    <Compile Include="Core\Client\RateLimitProvider`1.cs" />
+    <Compile Include="Core\Client\TokenBase.cs" />
+    <Compile Include="Core\Client\TokenContainer`1.cs" />
+    <Compile Include="Core\Client\TokenProvider`1.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Models\Api\Api.cs" />
     <Compile Include="Models\Api\ApiRequest.cs" />
+    <Compile Include="Models\Client\ApiKey.cs" />
+    <Compile Include="Models\Client\BatteriesBatteryIdChargePostRequest.cs" />
+    <Compile Include="Models\Client\Battery.cs" />
+    <Compile Include="Models\Client\BatteryChargeCycleEntry.cs" />
+    <Compile Include="Models\Client\BatteryDetailsResponse.cs" />
+    <Compile Include="Models\Client\CalendarIcalSharingLinkGet200Response.cs" />
+    <Compile Include="Models\Client\Chore.cs" />
+    <Compile Include="Models\Client\ChoreDetailsResponse.cs" />
+    <Compile Include="Models\Client\ChoreLogEntry.cs" />
+    <Compile Include="Models\Client\ChoresChoreIdExecutePostRequest.cs" />
+    <Compile Include="Models\Client\ChoresExecutionsCalculateNextAssignmentsPostRequest.cs" />
+    <Compile Include="Models\Client\CurrentBatteryResponse.cs" />
+    <Compile Include="Models\Client\CurrentChoreResponse.cs" />
+    <Compile Include="Models\Client\CurrentStockResponse.cs" />
+    <Compile Include="Models\Client\CurrentTaskResponse.cs" />
+    <Compile Include="Models\Client\CurrentVolatilStockResponse.cs" />
+    <Compile Include="Models\Client\CurrentVolatilStockResponseMissingProductsInner.cs" />
+    <Compile Include="Models\Client\DbChangedTimeResponse.cs" />
+    <Compile Include="Models\Client\Error400.cs" />
+    <Compile Include="Models\Client\Error500.cs" />
+    <Compile Include="Models\Client\Error500ErrorDetails.cs" />
+    <Compile Include="Models\Client\ExposedEntity.cs" />
+    <Compile Include="Models\Client\ExposedEntityNoDelete.cs" />
+    <Compile Include="Models\Client\ExposedEntityNoEdit.cs" />
+    <Compile Include="Models\Client\ExposedEntityNoListing.cs" />
+    <Compile Include="Models\Client\ExternalBarcodeLookupResponse.cs" />
+    <Compile Include="Models\Client\FileGroups.cs" />
+    <Compile Include="Models\Client\Location.cs" />
+    <Compile Include="Models\Client\MissingLocalizationRequest.cs" />
+    <Compile Include="Models\Client\ObjectsEntityGet200ResponseInner.cs" />
+    <Compile Include="Models\Client\ObjectsEntityPost200Response.cs" />
+    <Compile Include="Models\Client\PrintShoppinglistThermalGet200Response.cs" />
+    <Compile Include="Models\Client\Product.cs" />
+    <Compile Include="Models\Client\ProductBarcode.cs" />
+    <Compile Include="Models\Client\ProductDetailsResponse.cs" />
+    <Compile Include="Models\Client\ProductPriceHistory.cs" />
+    <Compile Include="Models\Client\ProductWithoutUserfields.cs" />
+    <Compile Include="Models\Client\QuantityUnit.cs" />
+    <Compile Include="Models\Client\RecipeFulfillmentResponse.cs" />
+    <Compile Include="Models\Client\RecipesRecipeIdAddNotFulfilledProductsToShoppinglistPostRequest.cs" />
+    <Compile Include="Models\Client\RecipesRecipeIdCopyPost200Response.cs" />
+    <Compile Include="Models\Client\ShoppingListItem.cs" />
+    <Compile Include="Models\Client\ShoppingLocation.cs" />
+    <Compile Include="Models\Client\StockEntry.cs" />
+    <Compile Include="Models\Client\StockEntryEntryIdPutRequest.cs" />
+    <Compile Include="Models\Client\StockJournal.cs" />
+    <Compile Include="Models\Client\StockJournalSummary.cs" />
+    <Compile Include="Models\Client\StockLocation.cs" />
+    <Compile Include="Models\Client\StockLogEntry.cs" />
+    <Compile Include="Models\Client\StockProductsByBarcodeBarcodeAddPostRequest.cs" />
+    <Compile Include="Models\Client\StockProductsByBarcodeBarcodeInventoryPostRequest.cs" />
+    <Compile Include="Models\Client\StockProductsProductIdAddPostRequest.cs" />
+    <Compile Include="Models\Client\StockProductsProductIdConsumePostRequest.cs" />
+    <Compile Include="Models\Client\StockProductsProductIdCopyPost200Response.cs" />
+    <Compile Include="Models\Client\StockProductsProductIdInventoryPostRequest.cs" />
+    <Compile Include="Models\Client\StockProductsProductIdOpenPostRequest.cs" />
+    <Compile Include="Models\Client\StockProductsProductIdTransferPostRequest.cs" />
+    <Compile Include="Models\Client\StockShoppinglistAddMissingProductsPostRequest.cs" />
+    <Compile Include="Models\Client\StockShoppinglistAddProductPostRequest.cs" />
+    <Compile Include="Models\Client\StockShoppinglistClearPostRequest.cs" />
+    <Compile Include="Models\Client\StockShoppinglistRemoveProductPostRequest.cs" />
+    <Compile Include="Models\Client\StockTransactionType.cs" />
+    <Compile Include="Models\Client\StringEnumTemplate.cs" />
+    <Compile Include="Models\Client\SystemInfoGet200Response.cs" />
+    <Compile Include="Models\Client\SystemInfoGet200ResponseGrocyVersion.cs" />
+    <Compile Include="Models\Client\Task.cs" />
+    <Compile Include="Models\Client\TaskCategory.cs" />
+    <Compile Include="Models\Client\TasksTaskIdCompletePostRequest.cs" />
+    <Compile Include="Models\Client\TimeResponse.cs" />
+    <Compile Include="Models\Client\User.cs" />
+    <Compile Include="Models\Client\UserDto.cs" />
+    <Compile Include="Models\Client\Userfield.cs" />
+    <Compile Include="Models\Client\UserSetting.cs" />
+    <Compile Include="Models\Client\UsersUserIdPermissionsGet200ResponseInner.cs" />
+    <Compile Include="Models\Client\UsersUserIdPermissionsPostRequest.cs" />
+    <Compile Include="Models\Client\UsersUserIdPermissionsPutRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\Api\ApiService.cs" />
     <Compile Include="Services\Api\AuthService.cs" />
@@ -172,8 +268,13 @@
     <PackageReference Include="Newtonsoft.Json">
       <Version>13.0.4</Version>
     </PackageReference>
+    <PackageReference Include="System.Text.Json">
+      <Version>6.0.6</Version>
+    </PackageReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="OpenAPI\" />
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
